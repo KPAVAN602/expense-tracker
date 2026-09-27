@@ -121,6 +121,11 @@ h1 {
     background: rgba(255, 255, 255, 0.2);
     border: 1px solid rgba(255, 255, 255, 0.35);
 }
+html, body {
+    background-color: #1B2A4A !important;
+    margin: 0;
+    padding: 0;
+}
 
 /* Override: "Login here" button specifically - black background */
 .st-key-login_here_btn button {
