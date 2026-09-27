@@ -354,23 +354,29 @@ else:
             with col3:
                 min_amt = float(df["amount"].min())
                 max_amt = float(df["amount"].max())
+
+                # Handle the case where all expenses have the same amount
+                if min_amt == max_amt:
+                    min_amt = max(0.0, min_amt - 1)
+                    max_amt = max_amt + 1
+
                 amount_range = st.slider(
-                    "Total amount range (₹)",
-                    min_value=min_amt, max_value=max_amt,
-                    value=(min_amt, max_amt),
-                    key="filter_amount"
-                )
-            with col4:
-                valid_dates = df["created_at"].dropna()
-                if not valid_dates.empty:
-                    min_date = valid_dates.min().date()
-                    max_date = valid_dates.max().date()
-                    date_range = st.date_input(
-                        "Date range",
-                        value=(min_date, max_date),
-                        min_value=min_date, max_value=max_date,
-                        key="filter_date"
-                    )
+                "Total amount range (₹)",
+                min_value=min_amt, max_value=max_amt,
+                value=(min_amt, max_amt),
+                key="filter_amount"
+            )
+                with col4:
+                    valid_dates = df["created_at"].dropna()
+                    if not valid_dates.empty:
+                        min_date = valid_dates.min().date()
+                        max_date = valid_dates.max().date()
+                        date_range = st.date_input(
+                            "Date range",
+                            value=(min_date, max_date),
+                            min_value=min_date, max_value=max_date,
+                            key="filter_date"
+                        )
                 else:
                     date_range = None
                     st.write("No dates available to filter by")
