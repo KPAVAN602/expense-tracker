@@ -134,7 +134,7 @@ h1 {
 }
 </style>
 """, unsafe_allow_html=True)
-API_BASE = "http://127.0.0.1:5000"
+API_BASE =  "https://expense-tracker-2-nfwk.onrender.com"
 
 st.title("Expense Tracker 💰")
 
