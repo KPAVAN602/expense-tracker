@@ -134,7 +134,8 @@ h1 {
 }
 </style>
 """, unsafe_allow_html=True)
-API_BASE =  "https://expense-tracker-2-nfwk.onrender.com"
+
+API_BASE = "https://expense-tracker-2-nfwk.onrender.com"
 
 st.title("Expense Tracker 💰")
 
@@ -149,28 +150,31 @@ def get_expenses(headers):
         return response.json()
     return []
 
+
 def prepare_df(expenses):
     df = pd.DataFrame(expenses)
     df["created_at"] = pd.to_datetime(df["created_at"], errors="coerce")
     df["amount"] = pd.to_numeric(df["amount"], errors="coerce").fillna(0)
     df["month"] = df["created_at"].dt.strftime("%Y-%m")
     return df
+
+
 # ============================================================
 # LOGGED OUT: show login/register, nothing else
 # ============================================================
 if st.session_state['token'] is None:
- 
+
     if 'auth_view' not in st.session_state:
         st.session_state['auth_view'] = 'login'   # default view
- 
-    # ---------------- LOGIN VIEW ----------------#
+
+    # ---------------- LOGIN VIEW ----------------
     if st.session_state['auth_view'] == 'login':
         with st.form("Login_Page"):
             st.header("Login")
             Email = st.text_input("Email")
             Password = st.text_input("Password", type="password")
             Login = st.form_submit_button("Login")
- 
+
             if Login:
                 response = requests.post(f"{API_BASE}/api/auth/Login",
                                           json={"Email": Email, "Password": Password})
@@ -181,17 +185,17 @@ if st.session_state['token'] is None:
                     st.rerun()
                 else:
                     st.error("Invalid Email or Password")
- 
+
         st.markdown(
             "<p style='text-align:center; color:#F0F0F0; max-width:480px; margin:0.2rem auto;'>Don't have an account?</p>",
             unsafe_allow_html=True
         )
         _, mid, _ = st.columns([1.5, 1, 1.5])
         with mid:
-            if st.button("Register here", key="login_here_btn",use_container_width=True):
+            if st.button("Register here", key="login_here_btn", width="stretch"):
                 st.session_state['auth_view'] = 'register'
                 st.rerun()
- 
+
     # ---------------- REGISTER VIEW ----------------
     else:
         with st.form("Register_form"):
@@ -200,7 +204,7 @@ if st.session_state['token'] is None:
             Email_reg = st.text_input("Enter your email")
             Password_reg = st.text_input("Password", type="password")
             register = st.form_submit_button("Register")
- 
+
             if register:
                 response = requests.post(f"{API_BASE}/api/auth/Register",
                                           json={"Name": Name, "Email": Email_reg, "Password": Password_reg})
@@ -213,14 +217,15 @@ if st.session_state['token'] is None:
                     st.write(response.text)
 
         st.markdown(
-        "<p style='text-align:center; color:#F0F0F0; max-width:480px; margin:0.2rem auto;'>Already have an account?</p>",
-        unsafe_allow_html=True
-    )
+            "<p style='text-align:center; color:#F0F0F0; max-width:480px; margin:0.2rem auto;'>Already have an account?</p>",
+            unsafe_allow_html=True
+        )
         _, mid, _ = st.columns([1.5, 1, 1.5])
         with mid:
-            if st.button("Login here", key="login_here_btn",use_container_width=True):     
+            if st.button("Login here", key="login_here_btn", width="stretch"):
                 st.session_state['auth_view'] = 'login'
                 st.rerun()
+
 # ============================================================
 # LOGGED IN: sidebar navigation + all expense features
 # ============================================================
@@ -249,35 +254,35 @@ else:
     if option == "Dashboard":
         st.header("Dashboard 📊")
         st.subheader("Welcome To Dashboard 👋")
- 
+
         expenses = get_expenses(headers)
         if expenses:
-            df = prepare_df(expenses)                # <-- use the helper here
+            df = prepare_df(expenses)
             total_amount = df["amount"].sum()
             col1, col2 = st.columns(2)
             with col1:
                 st.metric("Total Expenses", len(df))
             with col2:
                 st.metric("Total Amount", f"₹{total_amount:.2f}")
- 
+
             summary = df.groupby("category", as_index=False)["amount"].sum()
- 
+
             pie_fig = px.pie(summary, names="category", values="amount",
-                             title="Expense share by category")
+                              title="Expense share by category")
             bar_fig = px.bar(summary, x="category", y="amount", color="category",
-                             title="Total spent by category", text_auto=True,
-                             labels={"amount": "Amount (₹)", "category": "Category"})
+                              title="Total spent by category", text_auto=True,
+                              labels={"amount": "Amount (₹)", "category": "Category"})
             bar_fig.update_layout(showlegend=False)
- 
+
             chart_col1, chart_col2 = st.columns(2)
-            chart_col1.plotly_chart(pie_fig, use_container_width="stretch")
-            chart_col2.plotly_chart(bar_fig, use_container_width="stretch")
- 
-            # --- Line chart: spending over time (all months) ---
+            chart_col1.plotly_chart(pie_fig, width="stretch")
+            chart_col2.plotly_chart(bar_fig, width="stretch")
+
+            # --- Monthly spending trend ---
             monthly = (
                 df.dropna(subset=["month"])
-                .groupby("month", as_index=False)["amount"].sum()
-                .sort_values("month")
+                  .groupby("month", as_index=False)["amount"].sum()
+                  .sort_values("month")
             )
 
             if not monthly.empty:
@@ -302,14 +307,14 @@ else:
                     xaxis=dict(showgrid=False, color="#F0F0F0"),
                     yaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.1)", color="#F0F0F0", title="Amount (₹)"),
                     margin=dict(l=20, r=20, t=60, b=40),
-                    bargap=0.4,   # thinner bars look better with few data points, avoids a bulky look
+                    bargap=0.4,
                 )
-                st.plotly_chart(trend_fig, use_container_width=True,width="stretch" )
+                st.plotly_chart(trend_fig, width="stretch")
 
+            # Always show recent expenses, regardless of whether monthly trend has data
+            st.subheader("🧾 Recent expenses")
+            st.dataframe(df, width="stretch")
 
-                st.subheader("🧾 Recent expenses")
-                st.dataframe(df, use_container_width="stretch")
- 
         else:
             st.info("No expenses found yet — add one to get started.")
 
@@ -337,11 +342,12 @@ else:
     elif option == "View Expense":
         st.header("View Expenses 🔎")
         expenses = get_expenses(headers)
- 
+
         if not expenses:
             st.info("No expenses found.")
         else:
             df = prepare_df(expenses)
+
             # --- Filter controls ---
             col1, col2 = st.columns(2)
             with col1:
@@ -349,7 +355,7 @@ else:
             with col2:
                 categories = ["All"] + sorted(df["category"].dropna().unique().tolist())
                 category_filter = st.selectbox("Filter by category", categories, key="filter_cat")
- 
+
             col3, col4 = st.columns(2)
             with col3:
                 min_amt = float(df["amount"].min())
@@ -361,56 +367,55 @@ else:
                     max_amt = max_amt + 1
 
                 amount_range = st.slider(
-                "Total amount range (₹)",
-                min_value=min_amt, max_value=max_amt,
-                value=(min_amt, max_amt),
-                key="filter_amount"
-            )
-                with col4:
-                    valid_dates = df["created_at"].dropna()
-                    if not valid_dates.empty:
-                        min_date = valid_dates.min().date()
-                        max_date = valid_dates.max().date()
-                        date_range = st.date_input(
-                            "Date range",
-                            value=(min_date, max_date),
-                            min_value=min_date, max_value=max_date,
-                            key="filter_date"
-                        )
+                    "Total amount range (₹)",
+                    min_value=min_amt, max_value=max_amt,
+                    value=(min_amt, max_amt),
+                    key="filter_amount"
+                )
+            with col4:
+                valid_dates = df["created_at"].dropna()
+                if not valid_dates.empty:
+                    min_date = valid_dates.min().date()
+                    max_date = valid_dates.max().date()
+                    date_range = st.date_input(
+                        "Date range",
+                        value=(min_date, max_date),
+                        min_value=min_date, max_value=max_date,
+                        key="filter_date"
+                    )
                 else:
                     date_range = None
                     st.write("No dates available to filter by")
- 
+
             # --- Apply filters ---
             filtered = df.copy()
- 
+
             if title_search:
                 filtered = filtered[filtered["title"].str.contains(title_search, case=False, na=False)]
- 
+
             if category_filter != "All":
                 filtered = filtered[filtered["category"] == category_filter]
- 
+
             filtered = filtered[
                 (filtered["amount"] >= amount_range[0]) &
                 (filtered["amount"] <= amount_range[1])
             ]
- 
+
             if date_range and isinstance(date_range, tuple) and len(date_range) == 2:
                 start_date, end_date = date_range
                 filtered = filtered[
                     (filtered["created_at"].dt.date >= start_date) &
                     (filtered["created_at"].dt.date <= end_date)
                 ]
- 
+
             st.divider()
             st.subheader(f"Results: {len(filtered)} expense(s)")
- 
+
             if not filtered.empty:
                 st.metric("Total (filtered)", f"₹{filtered['amount'].sum():.2f}")
-                st.dataframe(filtered, use_container_width=True)
+                st.dataframe(filtered, width="stretch")
             else:
                 st.warning("No expenses match these filters.")
- 
 
     # ---------------- Update Complete Expense (PUT) ----------------
     elif option == "Update Expense":
@@ -431,7 +436,7 @@ else:
                 if response.status_code == 200:
                     st.success("Expense fully updated")
                 else:
-                    st.error("Failed to update  expense")
+                    st.error("Failed to update expense")
                     st.write(response.text)
 
     # ---------------- Delete Expense ----------------
@@ -448,7 +453,8 @@ else:
                 else:
                     st.error("Failed to delete expense")
                     st.write(response.text)
-        # ---------------- About ----------------
+
+    # ---------------- About ----------------
     elif option == "About":
         st.markdown("""
         <div style="
@@ -465,11 +471,11 @@ else:
             <p style="color:#C9CDD3; font-size:1.05rem;">A secure full-stack expense tracker that helps you add, track, and analyze your spending — built with Flask, MySQL, and Streamlit.</p>
             <hr style="border-color: rgba(255,255,255,0.15); margin: 1rem 0;">
             <p style="color:#F0F0F0;"><b>🎯 Purpose</b><br>
-            Most people don't track their spending until it's already a problem — receipts pile up, 
-            expenses blend together, and by month-end it's hard to say where the money actually went. 
-            This project was built to change that: a simple, secure space to log expenses as they happen 
-        and see your spending patterns clearly, so budgeting feels less like guesswork.</p>
-        <hr style="border-color: rgba(255,255,255,0.15); margin: 1rem 0;">
+            Most people don't track their spending until it's already a problem — receipts pile up,
+            expenses blend together, and by month-end it's hard to say where the money actually went.
+            This project was built to change that: a simple, secure space to log expenses as they happen
+            and see your spending patterns clearly, so budgeting feels less like guesswork.</p>
+            <hr style="border-color: rgba(255,255,255,0.15); margin: 1rem 0;">
             <p style="color:#F0F0F0;"><b>👤 Developer</b><br>Pavan Kalyan K</p>
             <p style="color:#F0F0F0;"><b>🛠️ Tech Stack</b><br>Python · Flask · MySQL · Streamlit · JWT Authentication</p>
             <p style="color:#F0F0F0;"><b>✨ Features</b></p>
