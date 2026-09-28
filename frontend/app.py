@@ -142,7 +142,7 @@ html, body {
 
 API_BASE = "https://expense-tracker-2-nfwk.onrender.com"
 
-st.markdown("<h2>Expense Tracker 💰</h2>", unsafe_allow_html=True)
+st.title("Expense Tracker")
 
 # Initialize once
 if 'token' not in st.session_state:
