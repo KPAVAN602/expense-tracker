@@ -142,7 +142,7 @@ html, body {
 
 API_BASE = "https://expense-tracker-2-nfwk.onrender.com"
 
-st.title("Expense Tracker 💰")
+st.subheader("Expense Tracker 💰")
 
 # Initialize once
 if 'token' not in st.session_state:
